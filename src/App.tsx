@@ -698,25 +698,26 @@ export default function App() {
             <div>
               {/* Header: Logo/Company & Invoice Title/Badge */}
               <div className="flex justify-between items-start border-b border-slate-100 pb-8 gap-6">
-                <div>
+                <div className="space-y-1">
                   {invoice.seller.logoUrl ? (
-                    <div className="mb-4">
+                    <div className="mb-3">
                       <img 
                         src={invoice.seller.logoUrl} 
                         alt="Logo" 
-                        className="h-20 md:h-24 max-w-[280px] object-contain rounded drop-shadow-xs" 
+                        className="h-16 w-auto max-w-[280px] object-contain object-left" 
                       />
                     </div>
-                  ) : null}
-                  <h2 className="text-2xl font-bold text-slate-900 leading-tight">
-                    {invoice.seller.businessName || invoice.seller.name || 'Your Business'}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">{invoice.seller.name}</p>
+                  ) : (
+                    <h2 className="text-2xl font-bold text-slate-900 leading-tight">
+                      {invoice.seller.businessName || invoice.seller.name || 'Your Business'}
+                    </h2>
+                  )}
+                  <p className="text-xs text-slate-500 font-semibold">{invoice.seller.name}</p>
                   <p className="text-xs text-slate-500">{invoice.seller.address}</p>
                   <p className="text-xs text-slate-500">{invoice.seller.cityStateZip}</p>
                   <p className="text-xs text-slate-500">{invoice.seller.email} • {invoice.seller.phone}</p>
                   {invoice.seller.taxId && (
-                    <p className="text-xs text-slate-400 mt-1">Tax ID: {invoice.seller.taxId}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Tax ID: {invoice.seller.taxId}</p>
                   )}
                 </div>
 
