@@ -16,7 +16,7 @@ export interface SellerInfo {
   taxId: string;
   bankName: string;
   accountNumber: string;
-  routingOrIban: string;
+  sortCode: string;
   logoUrl?: string;
 }
 

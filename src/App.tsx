@@ -12,34 +12,34 @@ const STORAGE_KEY_SELLER = 'invoice_app_default_seller';
 const STORAGE_KEY_COLOR = 'invoice_app_accent_color';
 
 const DEFAULT_SELLER: SellerInfo = {
-  name: 'Alex Morgan',
-  businessName: 'Morgan Studio & Consulting',
-  email: 'alex@morganstudio.design',
-  phone: '+1 (555) 234-5678',
-  address: '100 Creative Way, Suite 400',
-  cityStateZip: 'San Francisco, CA 94107',
-  country: 'United States',
-  taxId: 'US-987654321',
-  bankName: 'Silicon Valley Bank',
-  accountNumber: '**** 4892',
-  routingOrIban: 'ROUTING: 121000358',
-  logoUrl: ''
+  name: 'Matt Kitchker',
+  businessName: 'MK Designs',
+  email: 'matt.kitchker@gmail.com',
+  phone: '07775568442',
+  address: '2 Kensington Close',
+  cityStateZip: 'Northampton, NN2 6NP',
+  country: 'United Kingdom',
+  taxId: '',
+  bankName: 'Chase Bank',
+  accountNumber: '61350820',
+  sortCode: '60-84-07',
+  logoUrl: '/logo.png'
 };
 
 const DEFAULT_CLIENT: ClientInfo = {
-  name: 'Sarah Connor',
-  company: 'Cyberdyne Systems',
-  email: 's.connor@cyberdyne.io',
-  phone: '+1 (555) 987-6543',
-  address: '2145 Technology Blvd',
-  cityStateZip: 'Austin, TX 78701',
-  country: 'United States'
+  name: '',
+  company: '',
+  email: '',
+  phone: '',
+  address: '',
+  cityStateZip: '',
+  country: ''
 };
 
 const CURRENCIES = [
+  { code: 'GBP', symbol: '£', label: 'GBP (£)' },
   { code: 'USD', symbol: '$', label: 'USD ($)' },
   { code: 'EUR', symbol: '€', label: 'EUR (€)' },
-  { code: 'GBP', symbol: '£', label: 'GBP (£)' },
   { code: 'CAD', symbol: 'CA$', label: 'CAD (CA$)' },
   { code: 'AUD', symbol: 'A$', label: 'AUD (A$)' },
   { code: 'JPY', symbol: '¥', label: 'JPY (¥)' },
@@ -59,12 +59,18 @@ export default function App() {
   const [isExporting, setIsExporting] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Load initial seller from local storage if exists
+  // Load initial seller from local storage if exists, else fallback to DEFAULT_SELLER
   const getInitialSeller = (): SellerInfo => {
     const saved = localStorage.getItem(STORAGE_KEY_SELLER);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Ensure new defaults if missing or outdated
+        return {
+          ...DEFAULT_SELLER,
+          ...parsed,
+          sortCode: parsed.sortCode || parsed.routingOrIban || DEFAULT_SELLER.sortCode,
+        };
       } catch (e) {
         console.error('Failed to parse saved seller info', e);
       }
@@ -80,19 +86,17 @@ export default function App() {
     invoiceNumber: 'INV-' + new Date().getFullYear() + '-001',
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    currency: '$',
+    currency: '£',
     seller: getInitialSeller(),
     client: DEFAULT_CLIENT,
     items: [
       { id: '1', description: 'Brand Strategy & UI/UX Design Sprint', quantity: 1, rate: 2500 },
-      { id: '2', description: 'Web Application Development (Frontend + API)', quantity: 35, rate: 85 },
-      { id: '3', description: 'Hosting Setup & Domain Configuration', quantity: 1, rate: 250 }
     ],
-    taxRate: 8.5,
+    taxRate: 0,
     discount: 0,
     discountType: 'percentage',
     notes: 'Thank you for your business! Please feel free to reach out if you have any questions regarding this invoice.',
-    terms: 'Payment is due within 14 days of issue date. Late payments are subject to a 5% monthly fee.',
+    terms: 'Payment is due within 14 days of issue date.',
     accentColor: getInitialColor()
   });
 
@@ -144,7 +148,7 @@ export default function App() {
     setTimeout(() => setSavedSuccess(false), 2500);
   };
 
-  // Reset to sample client
+  // Reset to empty client
   const handleResetClient = () => {
     setInvoice(prev => ({
       ...prev,
@@ -254,7 +258,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Workspace: 2-column Grid (Editor Left, Live Preview Right) */}
+      {/* Main Workspace */}
       <main className="max-w-7xl mx-auto w-full p-4 md:p-6 lg:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* LEFT COLUMN: Editor Form */}
@@ -388,7 +392,7 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip / Postcode</label>
                   <input
                     type="text"
                     value={invoice.seller.cityStateZip}
@@ -411,27 +415,36 @@ export default function App() {
               <div className="pt-2 border-t border-slate-100">
                 <label className="block text-xs font-semibold text-slate-700 mb-2">Payment / Bank Details</label>
                 <div className="grid grid-cols-3 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Bank Name"
-                    value={invoice.seller.bankName}
-                    onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, bankName: e.target.value } })}
-                    className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Account Number / IBAN"
-                    value={invoice.seller.accountNumber}
-                    onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, accountNumber: e.target.value } })}
-                    className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Routing / Swift / Note"
-                    value={invoice.seller.routingOrIban}
-                    onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, routingOrIban: e.target.value } })}
-                    className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
+                  <div>
+                    <label className="block text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Bank</label>
+                    <input
+                      type="text"
+                      placeholder="Bank Name"
+                      value={invoice.seller.bankName}
+                      onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, bankName: e.target.value } })}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Account</label>
+                    <input
+                      type="text"
+                      placeholder="Account Number"
+                      value={invoice.seller.accountNumber}
+                      onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, accountNumber: e.target.value } })}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Sort Code</label>
+                    <input
+                      type="text"
+                      placeholder="Sort Code"
+                      value={invoice.seller.sortCode}
+                      onChange={e => setInvoice({ ...invoice, seller: { ...invoice.seller, sortCode: e.target.value } })}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -501,7 +514,7 @@ export default function App() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Phone</label>
                   <input
                     type="text"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+44 7000 000000"
                     value={invoice.client.phone}
                     onChange={e => setInvoice({ ...invoice, client: { ...invoice.client, phone: e.target.value } })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -522,10 +535,10 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip / Postcode</label>
                   <input
                     type="text"
-                    placeholder="City, State, Zip"
+                    placeholder="City, Postcode"
                     value={invoice.client.cityStateZip}
                     onChange={e => setInvoice({ ...invoice, client: { ...invoice.client, cityStateZip: e.target.value } })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -685,7 +698,7 @@ export default function App() {
               <div className="flex justify-between items-start border-b border-slate-100 pb-8 gap-6">
                 <div>
                   {invoice.seller.logoUrl ? (
-                    <img src={invoice.seller.logoUrl} alt="Logo" className="h-14 max-w-[200px] object-contain mb-3" />
+                    <img src={invoice.seller.logoUrl} alt="Logo" className="h-14 max-w-[200px] object-contain mb-3 rounded" />
                   ) : null}
                   <h2 className="text-2xl font-bold text-slate-900 leading-tight">
                     {invoice.seller.businessName || invoice.seller.name || 'Your Business'}
@@ -729,7 +742,7 @@ export default function App() {
                   {invoice.client.phone && <div className="text-slate-500">{invoice.client.phone}</div>}
                 </div>
 
-                {(invoice.seller.bankName || invoice.seller.accountNumber) && (
+                {(invoice.seller.bankName || invoice.seller.accountNumber || invoice.seller.sortCode) && (
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Payment Details</h3>
                     {invoice.seller.bankName && (
@@ -738,8 +751,8 @@ export default function App() {
                     {invoice.seller.accountNumber && (
                       <div className="text-slate-700"><span className="font-semibold">Account:</span> {invoice.seller.accountNumber}</div>
                     )}
-                    {invoice.seller.routingOrIban && (
-                      <div className="text-slate-700">{invoice.seller.routingOrIban}</div>
+                    {invoice.seller.sortCode && (
+                      <div className="text-slate-700"><span className="font-semibold">Sort Code:</span> {invoice.seller.sortCode}</div>
                     )}
                   </div>
                 )}
@@ -760,8 +773,8 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
-                    {invoice.items.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50">
+                    {invoice.items.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/50">
                         <td className="py-3 px-2 font-medium text-slate-800">{item.description || 'Untitled Item'}</td>
                         <td className="py-3 px-2 text-right text-slate-600">{item.quantity}</td>
                         <td className="py-3 px-2 text-right text-slate-600">
