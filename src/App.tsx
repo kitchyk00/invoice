@@ -698,7 +698,13 @@ export default function App() {
               <div className="flex justify-between items-start border-b border-slate-100 pb-8 gap-6">
                 <div>
                   {invoice.seller.logoUrl ? (
-                    <img src={invoice.seller.logoUrl} alt="Logo" className="h-14 max-w-[200px] object-contain mb-3 rounded" />
+                    <div className="mb-4">
+                      <img 
+                        src={invoice.seller.logoUrl} 
+                        alt="Logo" 
+                        className="h-20 md:h-24 max-w-[280px] object-contain rounded drop-shadow-xs" 
+                      />
+                    </div>
                   ) : null}
                   <h2 className="text-2xl font-bold text-slate-900 leading-tight">
                     {invoice.seller.businessName || invoice.seller.name || 'Your Business'}
