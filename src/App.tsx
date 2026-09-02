@@ -23,7 +23,7 @@ const DEFAULT_SELLER: SellerInfo = {
   bankName: 'Chase Bank',
   accountNumber: '61350820',
   sortCode: '60-84-07',
-  logoUrl: '/logo.png'
+  logoUrl: '/logo.svg'
 };
 
 const DEFAULT_CLIENT: ClientInfo = {
@@ -47,10 +47,10 @@ const CURRENCIES = [
 
 const ACCENT_COLORS = [
   { name: 'Indigo', value: '#4f46e5' },
-  { name: 'Blue', value: '#2563eb' },
+  { name: 'Blue', value: '#0284c7' },
+  { name: 'Sky', value: '#0ea5e9' },
   { name: 'Emerald', value: '#059669' },
   { name: 'Violet', value: '#7c3aed' },
-  { name: 'Rose', value: '#e11d48' },
   { name: 'Slate', value: '#334155' },
 ];
 
@@ -65,10 +65,12 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Ensure new defaults if missing or outdated
+        // Ensure new defaults if missing or outdated, update /logo.png to /logo.svg
+        const logoUrl = (!parsed.logoUrl || parsed.logoUrl === '/logo.png') ? '/logo.svg' : parsed.logoUrl;
         return {
           ...DEFAULT_SELLER,
           ...parsed,
+          logoUrl,
           sortCode: parsed.sortCode || parsed.routingOrIban || DEFAULT_SELLER.sortCode,
         };
       } catch (e) {

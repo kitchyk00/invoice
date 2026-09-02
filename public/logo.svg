@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="480" height="160">
+  <defs>
+    <!-- Subtle drop shadow for the browser window card -->
+    <filter id="subtle-shadow" x="-8%" y="-8%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.06" />
+    </filter>
+  </defs>
+
+  <!-- Background (Border removed) -->
+  <rect width="480" height="160" rx="16" fill="#ffffff" />
+
+  <!-- Browser Window Icon Group -->
+  <g transform="translate(48, 44)">
+    <!-- Window Body -->
+    <rect width="72" height="72" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" filter="url(#subtle-shadow)" />
+    
+    <!-- Top Window Bar Divider -->
+    <line x1="0" y1="18" x2="72" y2="18" stroke="#e2e8f0" stroke-width="1.5" />
+
+    <!-- Window Control Dots -->
+    <circle cx="12" cy="9" r="2.75" fill="#ef4444" />
+    <circle cx="21" cy="9" r="2.75" fill="#f59e0b" />
+    <circle cx="30" cy="9" r="2.75" fill="#10b981" />
+
+    <!-- Layout Grid Elements -->
+    <!-- Left Sidebar Block -->
+    <rect x="9" y="26" width="22" height="37" rx="4" fill="#0284c7" />
+    
+    <!-- Top Right Content Card -->
+    <rect x="37" y="26" width="26" height="16" rx="4" fill="none" stroke="#0284c7" stroke-width="2" />
+    
+    <!-- Bottom Right Content Card -->
+    <rect x="37" y="47" width="26" height="16" rx="4" fill="none" stroke="#0284c7" stroke-width="2" />
+  </g>
+
+  <!-- Typography Group -->
+  <!-- Main Title: MK DIGITAL -->
+  <text x="144" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="28" font-weight="900" letter-spacing="1">
+    <tspan fill="#0f172a">MK </tspan>
+    <tspan fill="#0284c7">DIGITAL</tspan>
+  </text>
+
+  <!-- Subtitle: WEB DESIGN & BUILD -->
+  <text x="146" y="107" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#64748b" letter-spacing="4.5">
+    WEB DESIGN &amp; BUILD
+  </text>
+</svg>
