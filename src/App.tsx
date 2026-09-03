@@ -38,6 +38,14 @@ const DEFAULT_CLIENT: ClientInfo = {
 
 const BRAND_ACCENT_COLOR = '#0284c7';
 
+const formatInvoiceNumberFromDate = (dateStr?: string) => {
+  const date = dateStr ? new Date(dateStr) : new Date();
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `INV-${day}${month}${year}`;
+};
+
 export default function App() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -64,9 +72,11 @@ export default function App() {
     return DEFAULT_SELLER;
   };
 
+  const initialIssueDate = new Date().toISOString().split('T')[0];
+
   const [invoice, setInvoice] = useState<InvoiceData>({
-    invoiceNumber: 'INV-' + new Date().getFullYear() + '-001',
-    issueDate: new Date().toISOString().split('T')[0],
+    invoiceNumber: formatInvoiceNumberFromDate(initialIssueDate),
+    issueDate: initialIssueDate,
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     currency: '£',
     seller: getInitialSeller(),
@@ -271,7 +281,14 @@ export default function App() {
                 <input
                   type="date"
                   value={invoice.issueDate}
-                  onChange={e => setInvoice({ ...invoice, issueDate: e.target.value })}
+                  onChange={e => {
+                    const newIssueDate = e.target.value;
+                    setInvoice(prev => ({
+                      ...prev,
+                      issueDate: newIssueDate,
+                      invoiceNumber: formatInvoiceNumberFromDate(newIssueDate)
+                    }));
+                  }}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 />
               </div>
