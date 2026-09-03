@@ -99,11 +99,20 @@ export default function App() {
   };
 
   const initialIssueDate = new Date().toISOString().split('T')[0];
+  const calculateDueDate = (dateStr: string, days = 7) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+    d.setDate(d.getDate() + days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dt = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dt}`;
+  };
 
   const [invoice, setInvoice] = useState<InvoiceData>({
     invoiceNumber: formatInvoiceNumberFromDate(initialIssueDate),
     issueDate: initialIssueDate,
-    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    dueDate: calculateDueDate(initialIssueDate, 7),
     currency: '£',
     seller: getInitialSeller(),
     client: DEFAULT_CLIENT,
@@ -114,7 +123,7 @@ export default function App() {
     discount: 0,
     discountType: 'percentage',
     notes: 'Thank you for your business! Please feel free to reach out if you have any questions regarding this invoice.',
-    terms: 'Payment is due within 14 days of issue date.',
+    terms: 'Payment is due within 7 days of issue date.',
     accentColor: BRAND_ACCENT_COLOR
   });
 
@@ -312,6 +321,7 @@ export default function App() {
                     setInvoice(prev => ({
                       ...prev,
                       issueDate: newIssueDate,
+                      dueDate: calculateDueDate(newIssueDate, 7),
                       invoiceNumber: formatInvoiceNumberFromDate(newIssueDate)
                     }));
                   }}
