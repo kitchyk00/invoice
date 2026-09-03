@@ -39,11 +39,37 @@ const DEFAULT_CLIENT: ClientInfo = {
 const BRAND_ACCENT_COLOR = '#0284c7';
 
 const formatInvoiceNumberFromDate = (dateStr?: string) => {
-  const date = dateStr ? new Date(dateStr) : new Date();
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `INV-${day}${month}${year}`;
+  if (!dateStr) {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    return `INV-${day}${month}${year}`;
+  }
+  const [year, month, day] = dateStr.split('-');
+  if (year && month && day) {
+    return `INV-${day}${month}${year}`;
+  }
+  const date = new Date(dateStr);
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `INV-${d}${m}${y}`;
+};
+
+const formatDateUK = (dateStr?: string) => {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  }
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
 };
 
 export default function App() {
@@ -368,7 +394,7 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip / Postcode</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Town / City & Postcode</label>
                   <input
                     type="text"
                     value={invoice.seller.cityStateZip}
@@ -377,7 +403,7 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Tax ID / VAT (Optional)</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">VAT Reg / Tax ID (Optional)</label>
                   <input
                     type="text"
                     value={invoice.seller.taxId}
@@ -402,7 +428,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Account</label>
+                    <label className="block text-[10px] text-slate-500 uppercase font-semibold mb-0.5">Account Number</label>
                     <input
                       type="text"
                       placeholder="Account Number"
@@ -436,11 +462,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* Section 3: Purchaser / Client Information */}
+          {/* Section 3: Client / Billed To Information */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-                <User className="w-4 h-4 text-sky-600" /> Purchaser / Bill To
+                <User className="w-4 h-4 text-sky-600" /> Client / Billed To
               </h2>
               <button
                 onClick={handleResetClient}
@@ -464,7 +490,7 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Company / Organization</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Company / Organisation</label>
                   <input
                     type="text"
                     placeholder="Company Name"
@@ -480,7 +506,7 @@ export default function App() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>
                   <input
                     type="email"
-                    placeholder="client@company.com"
+                    placeholder="client@company.co.uk"
                     value={invoice.client.email}
                     onChange={e => setInvoice({ ...invoice, client: { ...invoice.client, email: e.target.value } })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
@@ -490,7 +516,7 @@ export default function App() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Phone</label>
                   <input
                     type="text"
-                    placeholder="+44 7000 000000"
+                    placeholder="07000 000000"
                     value={invoice.client.phone}
                     onChange={e => setInvoice({ ...invoice, client: { ...invoice.client, phone: e.target.value } })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
@@ -511,7 +537,7 @@ export default function App() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">City, State, Zip / Postcode</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Town / City & Postcode</label>
                   <input
                     type="text"
                     placeholder="City, Postcode"
@@ -524,7 +550,7 @@ export default function App() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">Country</label>
                   <input
                     type="text"
-                    placeholder="Country"
+                    placeholder="United Kingdom"
                     value={invoice.client.country}
                     onChange={e => setInvoice({ ...invoice, client: { ...invoice.client, country: e.target.value } })}
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
@@ -691,7 +717,7 @@ export default function App() {
                   <p className="text-xs text-slate-500">{invoice.seller.cityStateZip}</p>
                   <p className="text-xs text-slate-500">{invoice.seller.email} • {invoice.seller.phone}</p>
                   {invoice.seller.taxId && (
-                    <p className="text-xs text-slate-400 mt-0.5">Tax ID: {invoice.seller.taxId}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">VAT / Tax Reg: {invoice.seller.taxId}</p>
                   )}
                 </div>
 
@@ -704,10 +730,10 @@ export default function App() {
                   </span>
                   <div className="text-lg font-bold text-slate-900">{invoice.invoiceNumber}</div>
                   <div className="text-xs text-slate-500 mt-1">
-                    <span className="font-semibold text-slate-700">Issued:</span> {invoice.issueDate}
+                    <span className="font-semibold text-slate-700">Issued:</span> {formatDateUK(invoice.issueDate)}
                   </div>
                   <div className="text-xs text-slate-500">
-                    <span className="font-semibold text-slate-700">Due:</span> {invoice.dueDate}
+                    <span className="font-semibold text-slate-700">Due:</span> {formatDateUK(invoice.dueDate)}
                   </div>
                 </div>
               </div>
