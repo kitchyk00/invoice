@@ -1,0 +1,6 @@
+# Git Auto-Sync Rule
+
+After completing any task, code modification, or bugfix in this repository:
+1. Stage all changes: `git add .` (or specific modified files).
+2. Create a meaningful commit message describing the work done.
+3. Push changes to GitHub: `git push origin main`.
