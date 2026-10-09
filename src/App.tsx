@@ -222,12 +222,43 @@ export default function App() {
       const datePart = (invoice.issueDate || new Date().toISOString().split('T')[0]).replace(/[^0-9-]/g, '');
       const fileName = `${companyOrClient}_${datePart}.pdf`;
 
-      // Render element onto canvas at scale 2 for crisp rendering
+      // Render element onto canvas at scale 2 for crisp rendering.
+      // Tailwind v4 uses modern CSS oklch() colors which html2canvas cannot parse natively.
+      // We pass an onclone handler to sanitize any oklch colors in the cloned DOM tree.
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('invoice-preview');
+          if (!clonedElement) return;
+
+          // Strip heavy shadow classes that use oklch in Tailwind v4
+          clonedElement.style.boxShadow = 'none';
+
+          const allElements = [clonedElement, ...Array.from(clonedElement.getElementsByTagName('*'))];
+          for (const el of allElements) {
+            const htmlEl = el as HTMLElement;
+            // Remove transitions and complex filters that might trigger oklch parsing
+            htmlEl.style.transition = 'none';
+
+            // Check inline and computed styles for oklch and sanitize
+            const style = window.getComputedStyle(htmlEl);
+            if (style.boxShadow && style.boxShadow.includes('oklch')) {
+              htmlEl.style.boxShadow = 'none';
+            }
+            if (style.borderColor && style.borderColor.includes('oklch')) {
+              htmlEl.style.borderColor = '#e2e8f0';
+            }
+            if (style.backgroundColor && style.backgroundColor.includes('oklch')) {
+              htmlEl.style.backgroundColor = '#ffffff';
+            }
+            if (style.color && style.color.includes('oklch')) {
+              htmlEl.style.color = '#0f172a';
+            }
+          }
+        }
       });
 
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
