@@ -5,8 +5,8 @@ import {
   DollarSign, Hash, Image as ImageIcon
 } from 'lucide-react';
 import type { InvoiceData, LineItem, SellerInfo, ClientInfo } from './types';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const STORAGE_KEY_SELLER = 'invoice_app_default_seller';
 const STORAGE_KEY_COLOR = 'invoice_app_accent_color';
@@ -214,24 +214,58 @@ export default function App() {
 
     try {
       const element = previewRef.current;
-      const fileName = `${invoice.invoiceNumber || 'invoice'}.pdf`;
-      const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+      
+      // Determine file name: Company_Name_Date.pdf (fallback to client name or invoice number)
+      const companyOrClient = (invoice.client.company || invoice.client.name || invoice.seller.businessName || 'Invoice')
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]/g, '_');
+      const datePart = (invoice.issueDate || new Date().toISOString().split('T')[0]).replace(/[^0-9-]/g, '');
+      const fileName = `${companyOrClient}_${datePart}.pdf`;
 
-      const pdfBlob = await (html2pdf as any)().set(opt).from(element).outputPdf('blob');
-      const blobUrl = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      // Render element onto canvas at scale 2 for crisp rendering
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+      // Create A4 PDF (210mm x 297mm)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2); // 190mm
+      const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+      if (contentHeight <= pdfHeight - (margin * 2)) {
+        // Fits on a single A4 page cleanly
+        pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, contentHeight);
+      } else {
+        // Multipage handling in case content ever exceeds one page
+        let heightLeft = contentHeight;
+        let position = margin;
+
+        pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, contentHeight);
+        heightLeft -= (pdfHeight - margin * 2);
+
+        while (heightLeft > 0) {
+          position = heightLeft - contentHeight + margin;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', margin, position, contentWidth, contentHeight);
+          heightLeft -= (pdfHeight - margin * 2);
+        }
+      }
+
+      // Directly trigger download to default computer location
+      pdf.save(fileName);
     } catch (err) {
       console.error('PDF export failed, fallback to print:', err);
       window.print();
