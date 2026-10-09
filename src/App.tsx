@@ -214,15 +214,24 @@ export default function App() {
 
     try {
       const element = previewRef.current;
+      const fileName = `${invoice.invoiceNumber || 'invoice'}.pdf`;
       const opt = {
         margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: `${invoice.invoiceNumber || 'invoice'}.pdf`,
+        filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      await (html2pdf as any)().set(opt).from(element).save();
+      const pdfBlob = await (html2pdf as any)().set(opt).from(element).outputPdf('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch (err) {
       console.error('PDF export failed, fallback to print:', err);
       window.print();
